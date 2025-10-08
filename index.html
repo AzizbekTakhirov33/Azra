@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Универсальный Тест-Хаб</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <!-- Верхняя панель -->
+  <header class="topbar">
+    <div class="brand">Azra-Quiz</div>
+    <div class="spacer"></div>
+    <div id="userbox" class="userbox hide">
+      <span id="user-label"></span>
+      <button class="btn ghost sm" id="btn-schedule" onclick="openSchedule()" title="Расписание">Расписание</button>
+      <button class="btn ghost sm" id="btn-admin" onclick="openAdmin()" title="Панель администратора">Админ</button>
+      <button class="btn ghost sm" onclick="logout()">Выйти</button>
+    </div>
+  </header>
+
+  <!-- ЛОГИН -->
+  <div class="panel custom-box" id="screen-login">
+    <h2>Вход</h2>
+    <p class="muted"></p>
+    <div class="form">
+      <label>Логин</label>
+      <input id="login-username" type="text" placeholder="username" />
+      <label>Пароль</label>
+      <input id="login-password" type="password" placeholder="password" />
+      <div class="row">
+        <button class="btn" onclick="login()">Войти</button>
+      </div>
+      <p id="login-error" class="error"></p>
+    </div>
+  </div>
+
+  <!-- Шаг 1: выбор КУРСА -->
+  <div class="panel custom-box hide" id="screen-years">
+    <h2>Выбери курс</h2>
+    <div id="years-list" class="grid"></div>
+  </div>
+
+  <!-- Шаг 2: выбор СЕМЕСТРА -->
+  <div class="panel custom-box hide" id="screen-sems">
+    <div class="crumbs" id="crumbs-sems"></div>
+    <h2>Выбери семестр</h2>
+    <div id="sems-list" class="grid"></div>
+    <button class="btn ghost" onclick="goBackToYears()">← К курсам</button>
+  </div>
+
+  <!-- Шаг 3: выбор ПРЕДМЕТА -->
+  <div class="panel custom-box hide" id="screen-subjects">
+    <div class="crumbs" id="crumbs-subj"></div>
+    <h2>Выбери предмет</h2>
+    <div id="subjects-list" class="grid"></div>
+    <button class="btn ghost" onclick="goBackToSems()">← К семестрам</button>
+  </div>
+
+  <!-- Экран «ДОМА» перед стартом конкретного теста -->
+  <div class="home-box custom-box hide" id="screen-home">
+    <div class="crumbs" id="crumbs-home"></div>
+    <h3 id="home-title">Предмет</h3>
+    <p>Всего вопросов: <span class="total-question">0</span></p>
+    <div id="subject-meta" class="meta"></div>
+    <button type="button" class="btn" onclick="startQuiz()">Start Quiz</button>
+    <button class="btn ghost" onclick="goBackToSubjects()">← К предметам</button>
+  </div>
+
+  <!-- Экран ВИКТОРИНЫ -->
+  <div class="quiz-box custom-box hide" id="screen-quiz">
+    <div class="question-number"></div>
+    <div class="question-text"></div>
+    <div class="option-container"></div>
+    <div class="solution-container"></div>
+    <div class="next-question-btn">
+      <button type="button" class="btn" onclick="next()">Next</button>
+    </div>
+    <div class="answers-indicator"></div>
+  </div>
+
+  <!-- Экран РЕЗУЛЬТАТА -->
+  <div class="result-box custom-box hide" id="screen-result">
+    <h1>Quiz Result</h1>
+    <table>
+      <tr><td>Total Question</td><td><span class="total-question"></span></td></tr>
+      <tr><td>Attempt</td><td><span class="total-attempt"></span></td></tr>
+      <tr><td>Total Correct</td><td><span class="total-correct"></span></td></tr>
+      <tr><td>Wrong</td><td><span class="total-wrong"></span></td></tr>
+      <tr><td>Percentage</td><td><span class="percentage"></span></td></tr>
+      <tr><td>Your Total Score</td><td><span class="total-score"></span></td></tr>
+    </table>
+    <button type="button" class="btn" onclick="tryAgainQuiz()">Try Again</button>
+    <button type="button" class="btn ghost" onclick="goToHome()">Go To Subject</button>
+  </div>
+
+  <!-- Экран РАСПИСАНИЯ -->
+<div class="panel custom-box hide" id="screen-schedule">
+  <div class="row" style="align-items:center; gap:8px;">
+    <h2 style="margin:0;">Расписание</h2>
+    <select id="schedule-group" onchange="renderSchedule()" style="margin-left:auto;">
+      <option value="DI-R-23-1">DI-R-23-1</option>
+    </select>
+  </div>
+  <div id="schedule-table" style="margin-top:12px;"></div>
+  <div class="row" style="margin-top:12px;">
+    <button class="btn ghost" onclick="closeSchedule()">← Назад</button>
+  </div>
+</div>
+
+
+  <!-- АДМИН ПАНЕЛЬ -->
+  <div class="panel custom-box hide" id="screen-admin">
+    <h2>Панель администратора</h2>
+    <p class="muted">Добавляй/удаляй пользователей, меняй роли и пароли. Всё хранится в localStorage.</p>
+
+    <h3>Пользователи</h3>
+    <div id="users-table" class="table"></div>
+
+    <h3 style="margin-top:18px;">Добавить пользователя</h3>
+    <div class="form inline">
+      <input id="new-username" type="text" placeholder="username">
+      <input id="new-password" type="password" placeholder="password">
+      <select id="new-role">
+        <option value="user">user</option>
+        <option value="admin">admin</option>
+      </select>
+      <button class="btn" onclick="adminAddUser()">Добавить</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn ghost" onclick="closeAdmin()">← Назад</button>
+      <button class="btn ghost" onclick="adminResetDefaults()">Сбросить к дефолту</button>
+    </div>
+    <p id="admin-msg" class="muted"></p>
+  </div>
+
+  <!-- 1) Твой набор вопросов -->
+  <script src="question.js"></script>
+  <!-- 2) Логика -->
+  <script src="app.js"></script>
+</body>
+</html>
