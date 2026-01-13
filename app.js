@@ -48,10 +48,6 @@ const CATALOG = {
 };
 
 /************* РЕЕСТР ТЕСТОВ *************/
-/* Поддерживаем оба варианта:
-   1) window.quizSets = { calculusTheory: [...] }
-   2) старый question.js, где массив лежит в глобальной переменной `quiz`
-*/
 const QUIZZES = (() => {
   const bank = (typeof window !== 'undefined' && window.quizSets) ? window.quizSets : {};
   // legacy aliases на старый question.js
@@ -96,12 +92,10 @@ const userLabel = document.getElementById('user-label');
 const btnAdmin = document.getElementById('btn-admin');
 
 /************* АУТЕНТИФИКАЦИЯ (localStorage) *************/
-/* namespaced ключи, чтобы не конфликтовать с другими проектами */
 const LS_PREFIX  = 'QUIZ_APP_V1';
 const LS_USERS   = `${LS_PREFIX}:USERS`;
 const LS_SESSION = `${LS_PREFIX}:SESSION`;
 
-/* users = [{username, password, role}] ; role: 'admin' | 'user'  */
 function seedDefaultUsers(){
   try{
     if (!localStorage.getItem(LS_USERS)){
@@ -151,7 +145,6 @@ function login(){
   const err = document.getElementById('login-error'); if (err) err.textContent='';
 
   const users = getUsers();
-  // username без учёта регистра/пробелов, пароль — строгий (можно поменять на norm(p) при желании)
   const found = users.find(x => norm(x.username) === norm(u) && x.password === p.trim());
 
   if (!found){
@@ -355,6 +348,12 @@ const questionText = document.querySelector(".question-text");
 const optionContainer = document.querySelector(".option-container");
 const answersIndicatorContainer = document.querySelector(".answers-indicator");
 
+/* 👇 КНОПКА NEXT (нужен id="btn-next" в HTML) */
+const btnNext = document.getElementById('btn-next');
+
+/* 👇 ФЛАГ: ответил ли на текущий вопрос */
+let answeredCurrent = false;
+
 let questionLimit = 0;
 let questionCounter = 0;
 let currentQuestion;
@@ -363,14 +362,17 @@ let availableOptions = [];
 let correctAnswers = 0;
 let attempt = 0;
 
+function setNextEnabled(on){
+  if (!btnNext) return;
+  btnNext.disabled = !on;
+  btnNext.classList.toggle('disabled', !on);
+}
+
 function normalizeOption(opt){
-  // "строка" → {text: "строка", img: null}
   if (typeof opt === 'string') return { text: opt, img: null };
-  // объект → {text, img}
   if (opt && typeof opt === 'object') {
     return { text: opt.text ?? '', img: opt.img ?? null };
   }
-  // на всякий пожарный
   return { text: String(opt ?? ''), img: null };
 }
 
@@ -380,16 +382,20 @@ function setAvailableQuestions() {
   questionLimit = src.length;
   for (let i = 0; i < questionLimit; i++) availableQuestions.push(src[i]);
 }
+
 function getNewQuestion() {
   if (!questionText || !optionContainer || !answersIndicatorContainer) return;
   if (questionCounter >= questionLimit) { quizOver(); return; }
+
+  // 👇 На новом вопросе Next блокируем
+  answeredCurrent = false;
+  setNextEnabled(false);
 
   questionNumber.innerHTML = "Question " + (questionCounter + 1) + " of " + questionLimit;
 
   const questionIndex = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
   currentQuestion = questionIndex;
 
-  // текст вопроса
   questionText.innerHTML = '';
   const questionTextElement = document.createElement('div');
   questionTextElement.innerHTML = currentQuestion.q || '';
@@ -402,49 +408,48 @@ function getNewQuestion() {
     questionText.appendChild(img);
   }
 
-  // удаляем выбранный из пула
   const idx = availableQuestions.indexOf(questionIndex);
   if (idx >= 0) availableQuestions.splice(idx,1);
 
   const rawOptions = Array.isArray(currentQuestion.options) ? currentQuestion.options : [];
-const options = rawOptions.map(normalizeOption); // <= теперь все в одном формате
+  const options = rawOptions.map(normalizeOption);
 
-availableOptions = [];
-const optionLen = options.length;
-for (let i = 0; i < optionLen; i++) availableOptions.push(i);
+  availableOptions = [];
+  const optionLen = options.length;
+  for (let i = 0; i < optionLen; i++) availableOptions.push(i);
 
-optionContainer.innerHTML='';
-let delay=0.12;
-for (let i = 0; i < optionLen; i++){
-  const optIndex = availableOptions[Math.floor(Math.random()*availableOptions.length)];
-  const idx2 = availableOptions.indexOf(optIndex);
-  availableOptions.splice(idx2,1);
+  optionContainer.innerHTML='';
+  let delay=0.12;
+  for (let i = 0; i < optionLen; i++){
+    const optIndex = availableOptions[Math.floor(Math.random()*availableOptions.length)];
+    const idx2 = availableOptions.indexOf(optIndex);
+    availableOptions.splice(idx2,1);
 
-  const option = document.createElement('div');
-  option.className='option';
-  option.id = optIndex;
-  option.style.animationDelay = delay+'s';
-  delay += 0.12;
+    const option = document.createElement('div');
+    option.className='option';
+    option.id = optIndex;
+    option.style.animationDelay = delay+'s';
+    delay += 0.12;
 
-  // текст (может быть пустым — тогда будет только картинка)
-  option.innerHTML = options[optIndex].text || '';
+    option.innerHTML = options[optIndex].text || '';
 
-  // картинка (если есть)
-  if (options[optIndex].img){
-    const im = document.createElement('img');
-    im.src = options[optIndex].img;
-    im.alt = 'option image';
-    option.appendChild(im);
+    if (options[optIndex].img){
+      const im = document.createElement('img');
+      im.src = options[optIndex].img;
+      im.alt = 'option image';
+      option.appendChild(im);
+    }
+
+    option.onclick = ()=>getResult(option);
+    optionContainer.appendChild(option);
   }
-
-  option.onclick = ()=>getResult(option);
-  optionContainer.appendChild(option);
-}
 
   questionCounter++;
 }
+
 function getResult(el){
   const id = parseInt(el.id,10);
+
   if (id === currentQuestion.answer){
     el.classList.add('correct'); updateAnswerIndicator('correct'); correctAnswers++;
   } else {
@@ -456,7 +461,10 @@ function getResult(el){
       }
     }
   }
-  attempt++; unclickableOptions();
+
+  attempt++;
+  unclickableOptions();
+
   if (currentQuestion.solutionImg){
     const im=document.createElement('img');
     im.src=currentQuestion.solutionImg;
@@ -464,11 +472,17 @@ function getResult(el){
     im.alt='solution';
     optionContainer.appendChild(im);
   }
+
+  // 👇 После выбора ответа Next разрешаем
+  answeredCurrent = true;
+  setNextEnabled(true);
 }
+
 function unclickableOptions(){
   const optionLen=optionContainer.children.length;
   for (let i=0;i<optionLen;i++) optionContainer.children[i].classList.add('already-answered');
 }
+
 function answersIndicator(){
   answersIndicatorContainer.innerHTML='';
   for (let i=0;i<questionLimit;i++){
@@ -476,18 +490,25 @@ function answersIndicator(){
     answersIndicatorContainer.appendChild(dot);
   }
 }
+
 function updateAnswerIndicator(t){
   const idx = Math.max(0, questionCounter-1);
   const dot = answersIndicatorContainer.children[idx];
   if (dot) dot.classList.add(t);
 }
+
 function next(){
+  // 👇 Запрет, если не выбран вариант
+  if (!answeredCurrent) return;
+
   if (questionCounter>=questionLimit) quizOver();
   else getNewQuestion();
 }
+
 function quizOver(){
   show(scrRes); quizResult();
 }
+
 function quizResult(){
   const el = scrRes;
   if (!el) return;
@@ -499,15 +520,20 @@ function quizResult(){
   el.querySelector('.percentage').innerHTML = percentage.toFixed(2) + "%";
   el.querySelector('.total-score').innerHTML = `${correctAnswers} / ${questionLimit}`;
 }
+
 function resetQuiz(){
   questionCounter=0; correctAnswers=0; attempt=0; availableQuestions=[]; availableOptions=[];
+  answeredCurrent = false;
+  setNextEnabled(false);
 }
+
 function startQuiz(){
   if (!state.quizId || !QUIZZES[state.quizId] || !Array.isArray(QUIZZES[state.quizId]) || QUIZZES[state.quizId].length===0){
     alert("Для этого предмета тест ещё не добавлен."); return;
   }
   resetQuiz(); setAvailableQuestions(); answersIndicator(); show(scrQuiz); getNewQuestion();
 }
+
 function tryAgainQuiz(){ resetQuiz(); setAvailableQuestions(); answersIndicator(); show(scrQuiz); getNewQuestion(); }
 function goToHome(){ show(scrHome); }
 
@@ -524,7 +550,6 @@ window.addEventListener('load', ()=>{
     show(scrLogin);
   }
 });
-
 
 /************* РАСПИСАНИЕ (DI-R-23-1) *************/
 const SCHEDULE = {
@@ -570,7 +595,6 @@ function openSchedule(){
   show(scrSchedule);
 }
 function closeSchedule(){
-  // Вернуться туда, где пользователю удобнее — я верну к списку курсов
   show(scrYears);
 }
 function renderSchedule(){
@@ -602,4 +626,3 @@ function renderSchedule(){
 
   scheduleTable.innerHTML = head + rows;
 }
-
