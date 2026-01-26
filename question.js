@@ -20638,7 +20638,7 @@ const y3s1_web_app_creation = [
 // Формат: { q, answer, options[{text,img}] }
 // ===============================
 
-const y3s1_cpp_app_creation = [
+const y3s1_cplusplus_app_dev = [
   // 1
   {
     q: "1. Цикл — это",
@@ -21947,5 +21947,5 @@ window.quizSets = Object.assign(window.quizSets || {}, {
   y3s1_operating_systems,
   y3s1_web_app_creation,
   y3s1_programming_paradigms,
-  y3s1_cpp_app_creation
+  y3s1_cplusplus_app_dev
 });
