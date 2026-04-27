@@ -39,10 +39,17 @@ const CATALOG = {
   "3 курс": {
     "5 семестр": [
       { name: "QA-тестирования", teacher: "Аскар Мукимов", phone: "(@Marquicks)", quizId: "y3s1_qa_testing" },
-      { name: "Операционные системы", teacher: "Хуршида Бахриева", phone: "(@Adisha422)", quizId: "y3s1_operating_systems" },
+      { name: "Операционные системы", teacher: "Хуршида Бахриева", phone: "+998 90 926 92 92 +998 99 055 31 31 +998 90 809 19 85 (@Adisha422)", quizId: "y3s1_operating_systems" },
       { name: "Создания программы на С++", teacher: "Аскар Мукимов", phone: "(@Marquicks)", quizId: "y3s1_cplusplus_app_dev" },
       { name: "Создание web-приложения", teacher: "Мухаммадали Бахромов", phone: "(@bahramovBME)", quizId: "y3s1_web_app_creation" },
       { name: "Виды программирования и парадигмы", teacher: "Мухаммадали Бахромов", phone: "(@bahramovBME)", quizId: "y3s1_programming_paradigms" },
+    ],
+    "6 семестр": [
+      { name: "Обеспечение качества программного обеспечения", teacher: "Хуршида Бахриева", phone: " +998 90 926 92 92 +998 99 055 31 31 +998 90 809 19 85(@Adisha422)", quizId: "y2s2_software_quality_assurance" },
+      { name: "Cистематический анализ", teacher: "Хуршида Бахриева", phone: " +998 90 926 92 92 +998 99 055 31 31 +998 90 809 19 85(@Adisha422)", quizId: "y2s1_system_analysis" },
+      { name: "Интеллектуальные средства обработки данных", teacher: "Хуршида Бахриева", phone: " +998 90 926 92 92 +998 99 055 31 31 +998 90 809 19 85(@Adisha422)", quizId: "y3s1_intelligent_data_processing" },
+      { name: "Разработка мобильных приложений (Практика)", teacher: "Аскар Мукимов", phone: "(@Marquicks)", quizId: "" },
+      { name: "Разработка мобильных приложений (Лекция)", teacher: "Anvar Abbasovich", phone: "+998 90 977 00 05", quizId: "" },
     ],
   },
 };
